@@ -14,22 +14,22 @@ class StyleProfile(BaseModel):
 
 class Character(BaseModel):
     """Represents a character in the book."""
-    name: str
-    role: str
-    description: str
+    name: str = "Unknown"
+    role: str = "Protagonist"
+    description: str = ""
     traits: List[str] = Field(default_factory=list)
     arc: Optional[str] = None
 
 class Location(BaseModel):
     """Represents a location in the book."""
-    name: str
-    description: str
+    name: str = "Unknown Location"
+    description: str = ""
     significance: Optional[str] = None
 
 class Event(BaseModel):
     """Represents a key event in the book's timeline."""
-    title: str
-    description: str
+    title: str = "Untitled Event"
+    description: str = ""
     location_name: Optional[str] = None
     involved_characters: List[str] = Field(default_factory=list)
 

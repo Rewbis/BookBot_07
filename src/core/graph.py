@@ -28,10 +28,10 @@ def plotter_node(state: GraphState) -> GraphState:
     project = state["project"]
     project.book_plan = result.get("plan", project.book_plan)
     
-    # Update data elements
-    project.characters = [Character(**c) for c in result.get("characters", [])]
-    project.locations = [Location(**l) for l in result.get("locations", [])]
-    project.events = [Event(**e) for e in result.get("events", [])]
+    # Update data elements with defensive parsing
+    project.characters = [Character(**{k: v for k, v in c.items() if v is not None}) for c in result.get("characters", [])]
+    project.locations = [Location(**{k: v for k, v in l.items() if v is not None}) for l in result.get("locations", [])]
+    project.events = [Event(**{k: v for k, v in e.items() if v is not None}) for e in result.get("events", [])]
     
     return {**state, "project": project, "iteration_count": state["iteration_count"] + 1}
 
@@ -79,7 +79,13 @@ def scene_writer_node(state: GraphState) -> GraphState:
     
     project = state["project"]
     if results:
-        project.chapters = [Chapter(**r) for r in results]
+        # Defensive parsing for chapters
+        cleaned_chapters = []
+        for i, r in enumerate(results):
+            if "number" not in r:
+                r["number"] = i + 1
+            cleaned_chapters.append(Chapter(**r))
+        project.chapters = cleaned_chapters
     
     return {**state, "project": project, "iteration_count": state["iteration_count"] + 1}
 
