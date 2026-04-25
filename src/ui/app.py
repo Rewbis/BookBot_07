@@ -53,10 +53,31 @@ def main():
         index=st.session_state.project.current_phase - 1
     )
     
-    # Save button in sidebar
+    # Save/Load Section
+    st.sidebar.divider()
+    st.sidebar.subheader("Project Management")
+    
+    # Save as Version (Timestamped)
+    if st.sidebar.button("📦 Save as Version"):
+        fname = save_project(st.session_state.project, use_timestamp=True)
+        st.sidebar.success(f"Saved: {fname}")
+
+    # Standard Save
     if st.sidebar.button("💾 Save Project"):
         save_project(st.session_state.project)
         st.sidebar.success("Project Saved!")
+        
+    # Load Project
+    uploaded_file = st.sidebar.file_uploader("📂 Load Project JSON", type=["json"])
+    if uploaded_file is not None:
+        try:
+            import json
+            data = json.load(uploaded_file)
+            st.session_state.project = ProjectState(**data)
+            st.sidebar.success("Project Loaded!")
+            st.rerun()
+        except Exception as e:
+            st.sidebar.error(f"Error loading file: {e}")
 
     # Update phase in project state
     if phase == "Phase 1: Planning":
