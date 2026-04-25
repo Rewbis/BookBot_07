@@ -1,0 +1,8 @@
+streamlit
+langchain
+langchain-ollama
+langgraph
+pydantic
+python-dotenv
+pywin32
+winshell
