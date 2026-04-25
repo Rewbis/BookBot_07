@@ -5,6 +5,7 @@ Phase 1 View: Planning and Brainstorming.
 import streamlit as st
 from src.core.graph import create_phase1_graph, GraphState
 from src.core.state import ProjectState, Character, Location, Event, Chapter
+from src.ui.persistence import save_project
 
 def show_phase1():
     st.title("Phase 1: Planning & Brainstorming")
@@ -25,6 +26,7 @@ def show_phase1():
                 }
                 final_state = graph.invoke(initial_state)
                 st.session_state.project = final_state["project"]
+                save_project(st.session_state.project)
                 st.rerun()
 
     if project.book_plan:

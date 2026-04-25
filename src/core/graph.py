@@ -29,9 +29,16 @@ def plotter_node(state: GraphState) -> GraphState:
     project.book_plan = result.get("plan", project.book_plan)
     
     # Update data elements with defensive parsing
-    project.characters = [Character(**{k: v for k, v in c.items() if v is not None}) for c in result.get("characters", [])]
-    project.locations = [Location(**{k: v for k, v in l.items() if v is not None}) for l in result.get("locations", [])]
-    project.events = [Event(**{k: v for k, v in e.items() if v is not None}) for e in result.get("events", [])]
+    def clean_element(elem, default_key="name"):
+        if isinstance(elem, dict):
+            return {k: v for k, v in elem.items() if v is not None}
+        if isinstance(elem, str):
+            return {default_key: elem}
+        return {}
+
+    project.characters = [Character(**clean_element(c, "name")) for c in result.get("characters", [])]
+    project.locations = [Location(**clean_element(l, "name")) for l in result.get("locations", [])]
+    project.events = [Event(**clean_element(e, "title")) for e in result.get("events", [])]
     
     return {**state, "project": project, "iteration_count": state["iteration_count"] + 1}
 

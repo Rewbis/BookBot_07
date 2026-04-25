@@ -5,6 +5,7 @@ Phase 2 View: Chapter Outlining.
 import streamlit as st
 from src.core.graph import create_phase2_graph
 from src.core.state import ProjectState
+from src.ui.persistence import save_project
 
 def show_phase2():
     st.title("Phase 2: Chapter Outlining")
@@ -23,6 +24,7 @@ def show_phase2():
                 }
                 final_state = graph.invoke(initial_state)
                 st.session_state.project = final_state["project"]
+                save_project(st.session_state.project)
                 st.rerun()
 
     if project.chapters and project.chapters[0].outline:
