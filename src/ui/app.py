@@ -79,6 +79,23 @@ def main():
         except Exception as e:
             st.sidebar.error(f"Error loading file: {e}")
 
+    # New Project
+    st.sidebar.divider()
+    if st.sidebar.button("✨ New Project", help="Wipes current state and starts fresh"):
+        st.session_state.confirm_new = True
+        
+    if st.session_state.get("confirm_new"):
+        st.sidebar.warning("Are you sure? All unsaved progress will be lost.")
+        col1, col2 = st.sidebar.columns(2)
+        if col1.button("✅ Yes, Reset", type="primary"):
+            st.session_state.project = ProjectState()
+            save_project(st.session_state.project)
+            st.session_state.confirm_new = False
+            st.rerun()
+        if col2.button("❌ Cancel"):
+            st.session_state.confirm_new = False
+            st.rerun()
+
     # Update phase in project state
     if phase == "Phase 1: Planning":
         st.session_state.project.current_phase = 1
