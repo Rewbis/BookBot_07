@@ -39,8 +39,9 @@ class Phase1Plotter:
         Refines the plan based on feedback from the Critic.
         """
         system_prompt = (
-            "You are an expert Book Plotter. You have received feedback from a Critic on your plan. "
-            "Revise the plan and world elements to address the feedback while maintaining the core vision.\n\n"
+            "You are an expert Book Plotter. You have received structured feedback from a Critic in JSON format.\n"
+            "You must systematically address every point mentioned in the Critic's feedback (plot_holes, flat_characters, pacing_issues).\n"
+            "Revise the plan and world elements to resolve these issues while maintaining the core vision.\n\n"
             "Return your response in strict JSON format with the same keys as before: [plan, characters, locations, events]."
         )
         
@@ -72,7 +73,11 @@ class Phase1Critic:
         """
         system_prompt = (
             "You are a professional Book Critic and Editor. Your job is to find weaknesses in a "
-            "book plan. Look for plot holes, flat characters, or pacing issues. Be constructive but firm."
+            "book plan. You must provide your feedback in strict JSON format with the following keys:\n"
+            "- plot_holes: A list of specific logic or narrative gaps.\n"
+            "- flat_characters: A list of characters that need more depth or clearer arcs.\n"
+            "- pacing_issues: A list of areas where the story moves too fast or too slow.\n"
+            "- general_feedback: Any other constructive criticism."
         )
         
         char_info = "\n".join([f"- {c.name} ({c.role}): {c.description}" for c in characters])
