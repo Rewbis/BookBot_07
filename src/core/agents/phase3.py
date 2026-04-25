@@ -11,7 +11,7 @@ class Phase3ActionAgent:
     def __init__(self):
         self.llm = get_llm()
 
-    def write_action(self, state: ProjectState, chapter: Chapter) -> str:
+    def write_action(self, state: ProjectState, chapter: Chapter, prev_context: str = "") -> str:
         system_prompt = (
             "You are an Action-Oriented Writer. Focus on the physical movements, dialogue, and direct actions in the scene. "
             "Return ONLY the story prose. Do not include any preamble, conversational filler, or markdown code block markers."
@@ -20,7 +20,8 @@ class Phase3ActionAgent:
             f"Chapter {chapter.number}: {chapter.title}\n"
             f"Book Plan: {state.book_plan}\n"
             f"Chapter Outline: {chapter.outline}\n"
-            f"Side Notes: {chapter.side_notes}"
+            f"Side Notes: {chapter.side_notes}\n\n"
+            f"{prev_context}"
         )
         return self.llm.invoke([("system", system_prompt), ("human", context)]).content
 

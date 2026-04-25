@@ -115,8 +115,15 @@ def action_node(state: GraphState) -> GraphState:
     agent = Phase3ActionAgent()
     project = state["project"]
     chapter = project.chapters[project.current_chapter_index]
+    
+    prev_context = ""
+    if project.current_chapter_index > 0:
+        prev = project.chapters[project.current_chapter_index - 1]
+        prev_text = prev.draft[-500:] if prev.draft else "[No previous draft found]"
+        prev_context = f"CONTINUITY FROM PREVIOUS CHAPTER:\nSummary: {prev.outline}\nLast lines:\n{prev_text}"
+        
     print(f"DEBUG: Drafting Chapter {chapter.number}: {chapter.title}")
-    draft = agent.write_action(project, chapter)
+    draft = agent.write_action(project, chapter, prev_context)
     chapter.draft = clean_prose_response(draft)
     return {**state, "project": project}
 
