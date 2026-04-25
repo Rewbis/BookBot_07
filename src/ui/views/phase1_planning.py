@@ -40,7 +40,15 @@ def show_phase1():
         with col2:
             project.target_total_wordcount = st.number_input("Target Wordcount", value=project.target_total_wordcount, min_value=1000)
 
+        # Style Profile
+        st.subheader("Step 3: Style Profile")
+        with st.expander("Define the Book's Voice", expanded=True):
+            project.style_profile.tone = st.text_input("Tone (e.g., dark and lyrical)", value=project.style_profile.tone)
+            project.style_profile.pov = st.text_input("POV (e.g., third person limited)", value=project.style_profile.pov)
+            project.style_profile.sample_prose = st.text_area("Sample Prose (for style matching)", value=project.style_profile.sample_prose, height=150)
+
         # Data Elements Tabs
+        st.subheader("Step 4: World Bible")
         tab1, tab2, tab3 = st.tabs(["Characters", "Locations", "Events"])
         
         with tab1:

@@ -44,12 +44,15 @@ class Phase3VoiceAgent:
     def __init__(self):
         self.llm = get_llm()
 
-    def apply_voice(self, draft: str, characters: list) -> str:
+    def apply_voice(self, draft: str, project: ProjectState) -> str:
+        style = project.style_profile
         system_prompt = (
-            "You are a Voice and Tone Expert. Refine the draft to ensure characters speak and act consistently with their traits and the overall tone of the book. "
+            "You are a Voice and Tone Expert. Refine the draft to ensure characters speak and act consistently with their traits and the overall tone of the book.\n\n"
+            f"REQUIRED STYLE:\n- Tone: {style.tone}\n- POV: {style.pov}\n"
+            f"PROSE SAMPLE (for inspiration): {style.sample_prose}\n\n"
             "Return ONLY the updated story prose. Do not include any preamble, conversational filler, or markdown code block markers."
         )
-        char_info = "\n".join([f"{c.name}: {c.traits}" for c in characters])
+        char_info = "\n".join([f"{c.name}: {c.traits}" for c in project.characters])
         user_prompt = f"Characters:\n{char_info}\n\nDraft:\n{draft}"
         return self.llm.invoke([("system", system_prompt), ("human", user_prompt)]).content
 
@@ -58,9 +61,11 @@ class Phase3EditorAgent:
     def __init__(self):
         self.llm = get_llm()
 
-    def final_edit(self, draft: str) -> str:
+    def final_edit(self, draft: str, project: ProjectState) -> str:
+        style = project.style_profile
         system_prompt = (
             "You are a Senior Editor. Perform a final polish of the scene, fixing flow, grammar, and pacing issues. "
+            f"Ensure the prose adheres to the target style: {style.tone} in {style.pov}.\n\n"
             "Return ONLY the polished story prose. Do not include any preamble, conversational filler, or markdown code block markers."
         )
         return self.llm.invoke([("system", system_prompt), ("human", draft)]).content

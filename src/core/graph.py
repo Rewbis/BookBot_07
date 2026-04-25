@@ -139,7 +139,7 @@ def voice_node(state: GraphState) -> GraphState:
     agent = Phase3VoiceAgent()
     project = state["project"]
     chapter = project.chapters[project.current_chapter_index]
-    draft = agent.apply_voice(chapter.draft, project.characters)
+    draft = agent.apply_voice(chapter.draft, project)
     chapter.draft = clean_prose_response(draft)
     return {**state, "project": project}
 
@@ -147,7 +147,7 @@ def editor_node(state: GraphState) -> GraphState:
     agent = Phase3EditorAgent()
     project = state["project"]
     chapter = project.chapters[project.current_chapter_index]
-    draft = agent.final_edit(chapter.draft)
+    draft = agent.final_edit(chapter.draft, project)
     chapter.draft = clean_prose_response(draft)
     chapter.is_completed = True
     return {**state, "project": project}

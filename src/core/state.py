@@ -6,6 +6,12 @@ Defines the project structure and data elements.
 from typing import List, Optional, Dict
 from pydantic import BaseModel, Field
 
+class StyleProfile(BaseModel):
+    """Defines the writing style for the book."""
+    tone: str = ""           # e.g. "dark and lyrical"
+    pov: str = ""            # e.g. "third person limited"
+    sample_prose: str = ""   # author pastes 200 words they like
+
 class Character(BaseModel):
     """Represents a character in the book."""
     name: str
@@ -44,6 +50,7 @@ class ProjectState(BaseModel):
     book_plan: str = ""
     target_chapters: int = 20
     target_total_wordcount: int = 50000
+    style_profile: StyleProfile = Field(default_factory=StyleProfile)
     
     # Data Elements (World Bible)
     characters: List[Character] = Field(default_factory=list)
