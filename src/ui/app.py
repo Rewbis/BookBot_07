@@ -58,12 +58,12 @@ def main():
     st.sidebar.subheader("Project Management")
     
     # Save as Version (Timestamped)
-    if st.sidebar.button("📦 Save as Version"):
+    if st.sidebar.button("📦 Save as Version", help="Creates a new timestamped file (e.g., MyBook_2024.json). Perfect for backups and versioning."):
         fname = save_project(st.session_state.project, use_timestamp=True)
         st.sidebar.success(f"Saved: {fname}")
 
     # Standard Save
-    if st.sidebar.button("💾 Save Project"):
+    if st.sidebar.button("💾 Save Project", help="Overwrites the main project_state.json file. Use this for quick, frequent saves."):
         save_project(st.session_state.project)
         st.sidebar.success("Project Saved!")
         

@@ -14,7 +14,7 @@ def show_phase2():
     
     if not project.chapters or not project.chapters[0].outline:
         st.info("No outlines generated yet. Let the agents create them based on your plan.")
-        if st.button("🚀 Generate Chapter Outlines"):
+        if st.button("🚀 Generate Chapter Outlines", help="Asks the agents to create detailed outlines for every chapter based on your book plan and characters."):
             with st.spinner("Agents are outlining the chapters..."):
                 graph = create_phase2_graph()
                 initial_state = {
@@ -42,10 +42,10 @@ def show_phase2():
                     chapter.side_notes = st.text_area("Side Notes (Characters/Locations)", value=chapter.side_notes, height=200, key=f"ch_notes_{i}")
 
         st.divider()
-        if st.button("✅ Confirm Outlines & Move to Drafting"):
+        if st.button("✅ Confirm Outlines & Move to Drafting", help="Finalizes the outlines and unlocks the scene drafting phase."):
             project.current_phase = 3
             st.rerun()
         
-        if st.button("⬅️ Back to Planning"):
+        if st.button("⬅️ Back to Planning", help="Returns to Phase 1 to edit the core plan or characters."):
             project.current_phase = 1
             st.rerun()

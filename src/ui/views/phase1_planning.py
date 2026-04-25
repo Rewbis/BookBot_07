@@ -14,8 +14,8 @@ def show_phase1():
     
     # Idea Input
     with st.expander("Step 1: Your Book Idea", expanded=not bool(project.book_idea)):
-        idea = st.text_area("What's the core concept of your book?", value=project.book_idea)
-        if st.button("Generate Initial Plan") and idea:
+        idea = st.text_area("What's the core concept of your book?", value=project.book_idea, help="Provide a few sentences or a paragraph describing your story idea.")
+        if st.button("Generate Initial Plan", help="Invokes agents to brainstorm a full narrative plan and key world elements based on your idea.") and idea:
             project.book_idea = idea
             with st.spinner("Agents are brainstorming..."):
                 graph = create_phase1_graph()
@@ -45,9 +45,9 @@ def show_phase1():
         # Style Profile
         st.subheader("Step 3: Style Profile")
         with st.expander("Define the Book's Voice", expanded=True):
-            project.style_profile.tone = st.text_input("Tone (e.g., dark and lyrical)", value=project.style_profile.tone)
-            project.style_profile.pov = st.text_input("POV (e.g., third person limited)", value=project.style_profile.pov)
-            project.style_profile.sample_prose = st.text_area("Sample Prose (for style matching)", value=project.style_profile.sample_prose, height=150)
+            project.style_profile.tone = st.text_input("Tone (e.g., dark and lyrical)", value=project.style_profile.tone, help="Describes the atmosphere and mood of the prose.")
+            project.style_profile.pov = st.text_input("POV (e.g., third person limited)", value=project.style_profile.pov, help="Point of view the book will be written in.")
+            project.style_profile.sample_prose = st.text_area("Sample Prose (for style matching)", value=project.style_profile.sample_prose, height=150, help="Paste ~200 words of writing you admire to help the agents mimic the style.")
 
         # Data Elements Tabs
         st.subheader("Step 4: World Bible")
@@ -89,7 +89,7 @@ def show_phase1():
 
         # Progression
         st.divider()
-        if st.button("✅ Confirm Plan & Move to Outlining"):
+        if st.button("✅ Confirm Plan & Move to Outlining", help="Finalizes this phase and prepares the project for detailed chapter-by-chapter outlining."):
             # Initialize chapters if they don't exist
             if not project.chapters:
                 project.chapters = [Chapter(number=i+1) for i in range(project.target_chapters)]

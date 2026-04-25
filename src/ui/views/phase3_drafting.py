@@ -29,7 +29,7 @@ def show_phase3():
     with col2:
         st.subheader("Draft")
         if not chapter.draft:
-            if st.button(f"🚀 Draft Chapter {chapter.number}"):
+            if st.button(f"🚀 Draft Chapter {chapter.number}", help="Starts the 4-agent drafting pipeline (Action → Sensory → Voice → Editor). This usually takes 1-2 minutes per chapter."):
                 graph = create_phase3_graph()
                 initial_state = {
                     "project": project,
@@ -61,18 +61,18 @@ def show_phase3():
         if chapter.draft:
             chapter.draft = st.text_area("Prose", value=chapter.draft, height=600, key=f"draft_{selected_chapter_idx}")
             
-            if st.button("💾 Save Draft"):
+            if st.button("💾 Save Draft", help="Saves the current edits to this chapter's prose."):
                 save_project(project)
                 st.success("Draft Saved!")
 
     st.divider()
-    if st.button("⬅️ Back to Outlining"):
+    if st.button("⬅️ Back to Outlining", help="Returns to Phase 2 to refine the chapter outlines."):
         project.current_phase = 2
         st.rerun()
 
     # Final Export
     if all(c.is_completed for c in project.chapters):
         st.subheader("🎉 Book Complete!")
-        if st.button("Export Full Book"):
+        if st.button("Export Full Book", help="Combines all drafted chapters into a single Markdown file for download."):
             full_book = "\n\n".join([f"# {c.title}\n\n{c.draft}" for c in project.chapters])
             st.download_button("Download Book (Markdown)", full_book, file_name="my_book.md")
