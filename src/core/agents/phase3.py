@@ -14,6 +14,7 @@ class Phase3ActionAgent:
     def write_action(self, state: ProjectState, chapter: Chapter, prev_context: str = "") -> str:
         system_prompt = (
             "You are an Action-Oriented Writer. Focus on the physical movements, dialogue, and direct actions in the scene. "
+            f"Target length: approximately {chapter.rough_wordcount} words. "
             "Return ONLY the story prose. Do not include any preamble, conversational filler, or markdown code block markers."
         )
         context = (
