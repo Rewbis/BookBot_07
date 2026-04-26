@@ -44,22 +44,22 @@ def show_phase1():
         
         # Plan Editing
         st.subheader("Step 2: Refine the Plan")
-        project.book_plan = st.text_area("Narrative Plan", value=project.book_plan, height=300)
+        new_plan = st.text_area("Narrative Plan", value=project.book_plan, height=300)
         
         col1, col2 = st.columns(2)
         with col1:
-            project.target_chapters = st.number_input("Target Chapters", value=project.target_chapters, min_value=1)
+            new_target_chapters = st.number_input("Target Chapters", value=project.target_chapters, min_value=1)
         with col2:
-            project.target_total_wordcount = st.number_input("Target Wordcount", value=project.target_total_wordcount, min_value=1000)
+            new_target_wordcount = st.number_input("Target Wordcount", value=project.target_total_wordcount, min_value=1000)
 
         # Style Profile
         st.subheader("Step 3: Style Profile")
         with st.expander("Define the Book's Voice", expanded=True):
-            project.style_profile.tone = st.text_input("Tone (e.g., dark and lyrical)", value=project.style_profile.tone, help="Describes the atmosphere and mood of the prose.")
-            project.style_profile.pov = st.text_input("POV (e.g., third person limited)", value=project.style_profile.pov, help="Point of view the book will be written in.")
-            project.style_profile.sample_prose = st.text_area("Sample Prose (for style matching)", value=project.style_profile.sample_prose, height=150, help="Paste ~200 words of writing you admire to help the agents mimic the style.")
+            new_tone = st.text_input("Tone (e.g., dark and lyrical)", value=project.style_profile.tone, help="Describes the atmosphere and mood of the prose.")
+            new_pov = st.text_input("POV (e.g., third person limited)", value=project.style_profile.pov, help="Point of view the book will be written in.")
+            new_sample = st.text_area("Sample Prose (for style matching)", value=project.style_profile.sample_prose, height=150, help="Paste ~200 words of writing you admire to help the agents mimic the style.")
 
-        # Data Elements Tabs
+        # Data Elements Tabs (World Bible)
         st.subheader("Step 4: World Bible")
         tab1, tab2, tab3 = st.tabs(["Characters", "Locations", "Events"])
         
@@ -73,6 +73,7 @@ def show_phase1():
             
             if st.button("Add Character"):
                 project.characters.append(Character(name="New Character", role="Side Character", description=""))
+                save_project(project)
                 st.rerun()
 
         with tab2:
@@ -84,6 +85,7 @@ def show_phase1():
             
             if st.button("Add Location"):
                 project.locations.append(Location(name="New Location", description=""))
+                save_project(project)
                 st.rerun()
 
         with tab3:
@@ -95,14 +97,39 @@ def show_phase1():
             
             if st.button("Add Event"):
                 project.events.append(Event(title="New Event", description=""))
+                save_project(project)
                 st.rerun()
 
-        # Progression
+        # Save and Progression
         st.divider()
-        if st.button("✅ Confirm Plan & Move to Outlining", help="Finalizes this phase and prepares the project for detailed chapter-by-chapter outlining."):
-            # Initialize chapters if they don't exist
-            if not project.chapters:
-                project.chapters = [Chapter(number=i+1) for i in range(project.target_chapters)]
-            
-            project.current_phase = 2
-            st.rerun()
+        col_save, col_move = st.columns([1, 1])
+        
+        with col_save:
+            if st.button("💾 Save All Changes", help="Persists all edits to the narrative plan, style, and world bible."):
+                project.book_plan = new_plan
+                project.target_chapters = new_target_chapters
+                project.target_total_wordcount = new_target_wordcount
+                project.style_profile.tone = new_tone
+                project.style_profile.pov = new_pov
+                project.style_profile.sample_prose = new_sample
+                # Note: Character/Location/Event names are already updated via their keys in the loop
+                save_project(project)
+                st.success("Project Saved!")
+
+        with col_move:
+            if st.button("✅ Confirm Plan & Move to Outlining", help="Finalizes this phase and prepares the project for detailed chapter-by-chapter outlining."):
+                # Apply latest edits before moving
+                project.book_plan = new_plan
+                project.target_chapters = new_target_chapters
+                project.target_total_wordcount = new_target_wordcount
+                project.style_profile.tone = new_tone
+                project.style_profile.pov = new_pov
+                project.style_profile.sample_prose = new_sample
+                
+                # Initialize chapters if they don't exist
+                if not project.chapters or len(project.chapters) != project.target_chapters:
+                    project.chapters = [Chapter(number=i+1) for i in range(project.target_chapters)]
+                
+                project.current_phase = 2
+                save_project(project)
+                st.rerun()

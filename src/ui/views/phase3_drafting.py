@@ -8,6 +8,37 @@ from src.core.state import ProjectState
 from src.ui.persistence import save_project
 from src.core.utils import parse_range_string
 
+def run_drafting_pipeline(project: ProjectState, chapter_idx: int):
+    """Executes the 4-agent drafting pipeline for a specific chapter."""
+    graph = create_phase3_graph()
+    initial_state = {
+        "project": project,
+        "critic_feedback": "",
+        "iteration_count": 0
+    }
+    chapter = project.chapters[chapter_idx]
+    project.current_chapter_index = chapter_idx
+    
+    with st.status(f"Writing Chapter {chapter.number}...", expanded=True) as status:
+        st.write("🎬 Action Agent is setting the scene...1/5")
+        for event in graph.stream(initial_state):
+            if "action" in event:
+                st.write("👃 Sensory Agent is adding details...2/5")
+                project = event["action"]["project"]
+            elif "sensory" in event:
+                st.write("🗣️ Voice Agent is styling prose...3/5")
+                project = event["sensory"]["project"]
+            elif "voice" in event:
+                st.write("✍️ Editor Agent is polishing...4/5")
+                project = event["voice"]["project"]
+            elif "editor" in event:
+                project = event["editor"]["project"]
+        
+        status.update(label="Drafting Complete! 5/5", state="complete", expanded=False)
+    
+    save_project(project)
+    return project
+
 def show_phase3():
     st.title("Phase 3: Scene Drafting")
     
@@ -22,29 +53,14 @@ def show_phase3():
             if not chapter_nums:
                 st.error("Invalid range or no chapters found.")
             else:
-                graph = create_phase3_graph()
                 progress_bar = st.progress(0)
                 status_text = st.empty()
                 
                 for i, ch_num in enumerate(chapter_nums):
                     ch_idx = ch_num - 1
-                    current_ch = project.chapters[ch_idx]
                     status_text.write(f"📝 **Bulk Progress:** Drafting Chapter {ch_num} ({i+1}/{len(chapter_nums)})...")
-                    
-                    initial_state = {
-                        "project": project,
-                        "critic_feedback": "",
-                        "iteration_count": 0
-                    }
-                    project.current_chapter_index = ch_idx
-                    
-                    # Run graph for this chapter
-                    for event in graph.stream(initial_state):
-                        if "editor" in event:
-                            project = event["editor"]["project"]
-                    
+                    project = run_drafting_pipeline(project, ch_idx)
                     progress_bar.progress((i + 1) / len(chapter_nums))
-                    save_project(project)
                 
                 st.success(f"Successfully drafted {len(chapter_nums)} chapters!")
                 st.rerun()
@@ -66,41 +82,37 @@ def show_phase3():
     with col2:
         st.subheader("Draft")
         if not chapter.draft:
-            if st.button(f"🚀 Draft Chapter {chapter.number}", help="Starts the 4-agent drafting pipeline (Action → Sensory → Voice → Editor). This usually takes 1-2 minutes per chapter."):
-                graph = create_phase3_graph()
-                initial_state = {
-                    "project": project,
-                    "critic_feedback": "",
-                    "iteration_count": 0
-                }
-                
-                with st.status(f"Writing Chapter {chapter.number}...", expanded=True) as status:
-                    st.write("🎬 Action Agent is setting the scene...1/5")
-                    for event in graph.stream(initial_state):
-                        if "action" in event:
-                            st.write("👃 Sensory Agent is adding details...2/5")
-                            project = event["action"]["project"]
-                        elif "sensory" in event:
-                            st.write("🗣️ Voice Agent is styling prose...3/5")
-                            project = event["sensory"]["project"]
-                        elif "voice" in event:
-                            st.write("✍️ Editor Agent is polishing...4/5")
-                            project = event["voice"]["project"]
-                        elif "editor" in event:
-                            project = event["editor"]["project"]
-                    
-                    status.update(label="Drafting Complete! 5/5", state="complete", expanded=False)
-                
+            if st.button(f"🚀 Draft Chapter {chapter.number}", help="Starts the 4-agent drafting pipeline."):
+                project = run_drafting_pipeline(project, selected_chapter_idx)
                 st.session_state.project = project
-                save_project(st.session_state.project)
                 st.rerun()
         
         if chapter.draft:
-            chapter.draft = st.text_area("Prose", value=chapter.draft, height=600, key=f"draft_{selected_chapter_idx}")
+            # Use local variable to capture edits
+            new_draft = st.text_area("Prose", value=chapter.draft, height=600, key=f"draft_{selected_chapter_idx}")
             
-            if st.button("💾 Save Draft", help="Saves the current edits to this chapter's prose."):
-                save_project(project)
-                st.success("Draft Saved!")
+            btn_col1, btn_col2 = st.columns([1, 1])
+            with btn_col1:
+                if st.button("💾 Save Draft", help="Saves the current edits."):
+                    chapter.draft = new_draft
+                    save_project(project)
+                    st.success("Draft Saved!")
+            
+            with btn_col2:
+                if st.button("🔄 Regenerate Draft", help="Overwrites current draft with fresh AI output."):
+                    st.session_state.confirm_regen = True
+                
+                if st.session_state.get("confirm_regen"):
+                    st.warning("⚠️ This will overwrite your current draft and all manual edits. Continue?")
+                    sub_col1, sub_col2 = st.columns([1, 1])
+                    if sub_col1.button("✅ Yes, Regenerate", type="primary"):
+                        st.session_state.confirm_regen = False
+                        project = run_drafting_pipeline(project, selected_chapter_idx)
+                        st.session_state.project = project
+                        st.rerun()
+                    if sub_col2.button("❌ Cancel"):
+                        st.session_state.confirm_regen = False
+                        st.rerun()
 
     st.divider()
     if st.button("⬅️ Back to Outlining", help="Returns to Phase 2 to refine the chapter outlines."):

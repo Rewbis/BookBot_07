@@ -38,7 +38,7 @@ def get_llm(model: str = "richardyoung/qwen3-14b-abliterated:Q4_K_M", temperatur
     return ChatOllama(
         model=model,
         temperature=temperature,
-        num_ctx=32768,  # Large context window for book writing
+        num_ctx=16384,  # context window for book writing
         repeat_penalty=1.1,
         callbacks=[TokenUsageCallback()]
     )

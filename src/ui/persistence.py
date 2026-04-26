@@ -16,6 +16,9 @@ def save_project(state: ProjectState, filename: str = "project_state.json", use_
     if not os.path.exists(DATA_DIR):
         os.makedirs(DATA_DIR)
     
+    # Update metadata
+    state.last_updated = datetime.now().isoformat()
+    
     if use_timestamp:
         # Sanitize book idea for filename if no title exists
         title = state.book_idea[:20] if state.book_idea else "Untitled"

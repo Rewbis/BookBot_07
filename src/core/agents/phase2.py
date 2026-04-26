@@ -57,6 +57,49 @@ class Phase2SceneWriter:
         response = self.llm.invoke([("system", system_prompt), ("human", context)])
         return self._parse_json_list(response.content)
 
+    def regenerate_subsequent_chapters(self, state: ProjectState, fixed_chapter_index: int) -> List[Dict[str, Any]]:
+        """
+        Re-generates chapters from fixed_chapter_index + 1 to the end, 
+        using previous chapters as fixed context.
+        """
+        system_prompt = (
+            "You are an expert Outliner. Your goal is to re-generate the remaining chapter outlines of a book "
+            "based on a set of FIXED previous chapters and the overall book plan.\n"
+            "You must strictly adhere to the WORLD BIBLE and maintain continuity from the fixed chapters.\n\n"
+            "Return your response in strict JSON format as a list of objects for the REMAINING chapters only. "
+            "Each object must have keys: [number, title, outline, side_notes, rough_wordcount]."
+        )
+        
+        fixed_chapters = state.chapters[:fixed_chapter_index + 1]
+        fixed_context = "\n".join([
+            f"Chapter {c.number} (FIXED):\nTitle: {c.title}\nOutline: {c.outline}\nSide Notes: {c.side_notes}" 
+            for c in fixed_chapters
+        ])
+        
+        char_info = "\n".join([f"- {c.name} ({c.role}): {c.description}" for c in state.characters])
+        loc_info = "\n".join([f"- {l.name}: {l.description}" for l in state.locations])
+        ev_info = "\n".join([f"- {e.title}: {e.description}" for e in state.events])
+        
+        context = (
+            f"Book Plan: {state.book_plan}\n\n"
+            f"WORLD BIBLE (Characters):\n{char_info}\n\n"
+            f"WORLD BIBLE (Locations):\n{loc_info}\n\n"
+            f"WORLD BIBLE (Key Events):\n{ev_info}\n\n"
+            f"FIXED CHAPTERS (DO NOT CHANGE THESE):\n{fixed_context}\n"
+        )
+        
+        remaining_count = state.target_chapters - (fixed_chapter_index + 1)
+        if remaining_count <= 0:
+            return []
+            
+        user_prompt = (
+            f"Context:\n{context}\n\n"
+            f"Please generate outlines for the remaining {remaining_count} chapters (starting from Chapter {fixed_chapter_index + 2})."
+        )
+        
+        response = self.llm.invoke([("system", system_prompt), ("human", user_prompt)])
+        return self._parse_json_list(response.content)
+
     def _parse_json_list(self, content: str) -> List[Dict[str, Any]]:
         result = clean_json_response(content)
         if isinstance(result, list):

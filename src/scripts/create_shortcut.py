@@ -3,10 +3,18 @@ Script to create a desktop shortcut for BookBot_07.
 """
 
 import os
-import winshell
-from win32com.client import Dispatch
+try:
+    import winshell
+    from win32com.client import Dispatch
+    WINDOWS_SUPPORT = True
+except ImportError:
+    WINDOWS_SUPPORT = False
 
 def create_shortcut():
+    if not WINDOWS_SUPPORT:
+        print("Shortcut creation is only supported on Windows with pywin32 and winshell installed.")
+        return
+        
     desktop = winshell.desktop()
     path = os.path.join(desktop, "BookBot 07.lnk")
     

@@ -14,6 +14,7 @@ A modular, agentic book-writing assistant powered by LangChain, LangGraph, Strea
    py -m venv venv
    .\venv\Scripts\python -m pip install -r requirements.txt
    ```
+   *Note: `pywin32` and `winshell` are optional and only installed on Windows to support desktop shortcut creation.*
 2. Ensure Ollama is running and you have the `richardyoung/qwen3-14b-abliterated:Q5_K_M` model pulled:
    ```bash
    ollama pull richardyoung/qwen3-14b-abliterated:Q5_K_M

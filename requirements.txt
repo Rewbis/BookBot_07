@@ -1,8 +1,8 @@
-streamlit
-langchain
-langchain-ollama
-langgraph
-pydantic
-python-dotenv
-pywin32
-winshell
+streamlit==1.56.0
+langchain==1.2.7
+langchain-ollama==1.1.0
+langgraph==1.0.7
+pydantic==2.12.5
+python-dotenv==1.2.1
+pywin32>=306; sys_platform == 'win32'
+winshell>=0.6; sys_platform == 'win32'

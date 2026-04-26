@@ -4,7 +4,8 @@ Phase 2 View: Chapter Outlining.
 
 import streamlit as st
 from src.core.graph import create_phase2_graph
-from src.core.state import ProjectState
+from src.core.state import ProjectState, Chapter
+from src.core.agents.phase2 import Phase2SceneWriter
 from src.ui.persistence import save_project
 
 def show_phase2():
@@ -41,14 +42,54 @@ def show_phase2():
         
         for i, chapter in enumerate(project.chapters):
             with st.expander(f"Chapter {chapter.number}: {chapter.title or 'Untitled'}"):
-                chapter.title = st.text_input("Title", value=chapter.title, key=f"ch_title_{i}")
-                chapter.rough_wordcount = st.number_input("Target Wordcount", value=chapter.rough_wordcount, key=f"ch_wc_{i}")
+                # Use local variables for UI state to avoid direct mutation
+                new_title = st.text_input("Title", value=chapter.title, key=f"ch_title_{i}")
+                new_wc = st.number_input("Target Wordcount", value=chapter.rough_wordcount, key=f"ch_wc_{i}")
                 
                 col1, col2 = st.columns([2, 1])
                 with col1:
-                    chapter.outline = st.text_area("Outline", value=chapter.outline, height=200, key=f"ch_outline_{i}")
+                    new_outline = st.text_area("Outline", value=chapter.outline, height=200, key=f"ch_outline_{i}")
                 with col2:
-                    chapter.side_notes = st.text_area("Side Notes (Characters/Locations)", value=chapter.side_notes, height=200, key=f"ch_notes_{i}")
+                    new_notes = st.text_area("Side Notes (Characters/Locations)", value=chapter.side_notes, height=200, key=f"ch_notes_{i}")
+
+                btn_col1, btn_col2, _ = st.columns([1, 2, 2])
+                with btn_col1:
+                    if st.button("💾 Save Chapter", key=f"save_ch_{i}"):
+                        # Apply changes to the model only on save
+                        chapter.title = new_title
+                        chapter.rough_wordcount = new_wc
+                        chapter.outline = new_outline
+                        chapter.side_notes = new_notes
+                        save_project(st.session_state.project)
+                        st.toast(f"Chapter {chapter.number} saved!")
+                
+                with btn_col2:
+                    if st.button("🔄 Re-generate Subsequent", key=f"regen_ch_{i}", help="WARNING: This will overwrite ALL chapters following this one."):
+                        # Apply current edits first so the model sees them as the "fixed" context
+                        chapter.title = new_title
+                        chapter.rough_wordcount = new_wc
+                        chapter.outline = new_outline
+                        chapter.side_notes = new_notes
+                        save_project(project)
+                        
+                        with st.status(f"Re-generating chapters from {chapter.number + 1} onwards...") as status:
+                            writer = Phase2SceneWriter()
+                            new_outlines = writer.regenerate_subsequent_chapters(project, i)
+                            if new_outlines:
+                                fixed_chapters = project.chapters[:i+1]
+                                updated_chapters = []
+                                for j, r in enumerate(new_outlines):
+                                    # Ensure numbering is correct
+                                    r["number"] = i + 2 + j
+                                    updated_chapters.append(Chapter(**r))
+                                
+                                project.chapters = fixed_chapters + updated_chapters
+                                st.session_state.project = project
+                                save_project(project)
+                                status.update(label="Re-generation complete!", state="complete")
+                                st.rerun()
+                            else:
+                                status.update(label="No subsequent chapters to generate.", state="error")
 
         st.divider()
         if st.button("✅ Confirm Outlines & Move to Drafting", help="Finalizes the outlines and unlocks the scene drafting phase."):
