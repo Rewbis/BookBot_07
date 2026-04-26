@@ -26,16 +26,20 @@ def show_phase1():
                     "iteration_count": 0
                 }
                 
+                final_state = None
                 for event in graph.stream(initial_state):
                     if "plotter" in event:
                         st.write("⚖️ Critic is reviewing the plan for weaknesses...2/4")
-                        project = event["plotter"]["project"]
+                        final_state = event["plotter"]
                     elif "critic" in event:
                         # Iteration count check happens in graph, we just report progress
                         st.write("🔄 Refining plan based on critique...3/4")
+                        final_state = event["critic"]
+                
+                if final_state:
+                    st.session_state.project = final_state["project"]
                 
                 status.update(label="Brainstorming Complete! 4/4", state="complete", expanded=False)
-                st.session_state.project = project
                 save_project(st.session_state.project)
                 st.rerun()
 
@@ -129,6 +133,11 @@ def show_phase1():
                 # Initialize chapters if they don't exist
                 if not project.chapters or len(project.chapters) != project.target_chapters:
                     project.chapters = [Chapter(number=i+1) for i in range(project.target_chapters)]
+                
+                # Extract premise for drafting context
+                if not project.premise:
+                    plotter = Phase1Plotter()
+                    project.premise = plotter.generate_premise(project.book_plan)
                 
                 project.current_phase = 2
                 save_project(project)

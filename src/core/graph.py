@@ -132,8 +132,12 @@ def action_node(state: GraphState) -> GraphState:
     prev_context = ""
     if project.current_chapter_index > 0:
         prev = project.chapters[project.current_chapter_index - 1]
-        if prev.draft:
-            prev_context = f"\nPrevious Chapter Summary: {prev.outline}\nLast lines:\n{prev.draft[-500:]}\n"
+        if prev.summary:
+            prev_context = f"\nPrevious Chapter Summary:\n{prev.summary}\n"
+        elif prev.draft:
+            # Fallback if summary is missing but draft exists
+            prev_text = prev.draft[-500:]
+            prev_context = f"\nPrevious Chapter Outline: {prev.outline}\nLast lines:\n{prev_text}\n"
         
     draft = agent.write_action(project, chapter, prev_context)
     chapter.draft = clean_prose_response(draft)
@@ -161,6 +165,14 @@ def editor_node(state: GraphState) -> GraphState:
     chapter = project.chapters[project.current_chapter_index]
     draft = agent.final_edit(chapter.draft, project)
     chapter.draft = clean_prose_response(draft)
+    return {**state, "project": project}
+
+def summarize_node(state: GraphState) -> GraphState:
+    agent = Phase3EditorAgent()
+    project = state["project"]
+    chapter = project.chapters[project.current_chapter_index]
+    summary = agent.summarise_chapter(chapter.draft)
+    chapter.summary = summary
     chapter.is_completed = True
     return {**state, "project": project}
 
@@ -172,12 +184,14 @@ def create_phase3_graph():
     workflow.add_node("sensory", sensory_node)
     workflow.add_node("voice", voice_node)
     workflow.add_node("editor", editor_node)
+    workflow.add_node("summarize", summarize_node)
     
     workflow.set_entry_point("action")
     workflow.add_edge("action", "sensory")
     workflow.add_edge("sensory", "voice")
     workflow.add_edge("voice", "editor")
-    workflow.add_edge("editor", END)
+    workflow.add_edge("editor", "summarize")
+    workflow.add_edge("summarize", END)
     
     return workflow.compile()
 

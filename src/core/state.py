@@ -41,6 +41,7 @@ class Chapter(BaseModel):
     outline: Optional[str] = None
     side_notes: Optional[str] = None
     draft: Optional[str] = None
+    summary: str = "" # Short context for continuity
     is_completed: bool = False
 
 class ProjectState(BaseModel):
@@ -48,6 +49,7 @@ class ProjectState(BaseModel):
     # Phase 1: Planning
     book_idea: str = ""
     book_plan: str = ""
+    premise: str = "" # Short summary for drafting context
     target_chapters: int = 20
     target_total_wordcount: int = 50000
     style_profile: StyleProfile = Field(default_factory=StyleProfile)

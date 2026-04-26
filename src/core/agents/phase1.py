@@ -54,6 +54,15 @@ class Phase1Plotter:
         response = self.llm.invoke([("system", system_prompt), ("human", context)])
         return self._parse_json(response.content)
 
+    def generate_premise(self, plan: str) -> str:
+        """Extracts a concise ~50-word premise from the full narrative plan."""
+        system_prompt = (
+            f"You are a narrative analyst. Extract a concise ~150-word premise from this full narrative plan. "
+            f"Focus on the core conflict, the protagonist's goal, and the high-level stakes. "
+            f"This will serve as the guiding context for drafting full scenes."
+        )
+        return self.llm.invoke([("system", system_prompt), ("human", plan)]).content
+
     def _parse_json(self, content: str) -> Dict[str, Any]:
         """Helper to extract and parse JSON from LLM response."""
         result = clean_json_response(content)

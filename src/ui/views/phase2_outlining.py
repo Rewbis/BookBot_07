@@ -25,15 +25,19 @@ def show_phase2():
                     "iteration_count": 0
                 }
                 
+                final_state = None
                 for event in graph.stream(initial_state):
                     if "writer" in event:
                         st.write("🔍 Continuity Checker is verifying narrative flow...2/4")
-                        project = event["writer"]["project"]
+                        final_state = event["writer"]
                     elif "checker" in event:
                         st.write("🔄 Refining outlines based on continuity check...3/4")
+                        final_state = event["checker"]
+                
+                if final_state:
+                    st.session_state.project = final_state["project"]
                 
                 status.update(label="Outlining Complete! 4/4", state="complete", expanded=False)
-                st.session_state.project = project
                 save_project(st.session_state.project)
                 st.rerun()
 
