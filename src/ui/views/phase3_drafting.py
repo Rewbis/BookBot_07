@@ -75,21 +75,21 @@ def show_phase3():
                 }
                 
                 with st.status(f"Writing Chapter {chapter.number}...", expanded=True) as status:
-                    st.write("🎬 Action Agent is setting the scene...")
+                    st.write("🎬 Action Agent is setting the scene...1/5")
                     for event in graph.stream(initial_state):
                         if "action" in event:
-                            st.write("👃 Sensory Agent is adding details...")
+                            st.write("👃 Sensory Agent is adding details...2/5")
                             project = event["action"]["project"]
                         elif "sensory" in event:
-                            st.write("🗣️ Voice Agent is styling prose...")
+                            st.write("🗣️ Voice Agent is styling prose...3/5")
                             project = event["sensory"]["project"]
                         elif "voice" in event:
-                            st.write("✍️ Editor Agent is polishing...")
+                            st.write("✍️ Editor Agent is polishing...4/5")
                             project = event["voice"]["project"]
                         elif "editor" in event:
                             project = event["editor"]["project"]
                     
-                    status.update(label="Drafting Complete!", state="complete", expanded=False)
+                    status.update(label="Drafting Complete! 5/5", state="complete", expanded=False)
                 
                 st.session_state.project = project
                 save_project(st.session_state.project)

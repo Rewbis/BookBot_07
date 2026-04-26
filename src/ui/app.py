@@ -43,6 +43,13 @@ st.markdown("""
 if "project" not in st.session_state:
     st.session_state.project = load_project()
 
+if "telemetry" not in st.session_state:
+    st.session_state.telemetry = {
+        "prompt_tokens": 0,
+        "completion_tokens": 0,
+        "total_tokens": 0
+    }
+
 def main():
     st.sidebar.title("🤖 BookBot 07")
     
@@ -78,6 +85,14 @@ def main():
             st.rerun()
         except Exception as e:
             st.sidebar.error(f"Error loading file: {e}")
+
+    # Telemetry Section
+    st.sidebar.divider()
+    st.sidebar.subheader("📊 Model Telemetry")
+    t = st.session_state.telemetry
+    st.sidebar.metric("Prompt Tokens", f"{t['prompt_tokens']:,}")
+    st.sidebar.metric("Completion Tokens", f"{t['completion_tokens']:,}")
+    st.sidebar.metric("Total Tokens", f"{t['total_tokens']:,}")
 
     # New Project
     st.sidebar.divider()
