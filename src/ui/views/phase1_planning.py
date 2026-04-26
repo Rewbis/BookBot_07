@@ -6,6 +6,7 @@ import streamlit as st
 from src.core.graph import create_phase1_graph, GraphState
 from src.core.state import ProjectState, Character, Location, Event, Chapter
 from src.ui.persistence import save_project
+from src.core.agents.phase1 import Phase1Plotter
 
 def show_phase1():
     st.title("Phase 1: Planning & Brainstorming")
