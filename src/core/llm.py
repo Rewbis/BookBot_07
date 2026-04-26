@@ -6,7 +6,7 @@ Uses langchain_ollama to interact with local Ollama models.
 from langchain_ollama import ChatOllama
 from typing import Optional
 
-def get_llm(model: str = "richardyoung/qwen3-14b-abliterated:Q5_K_M", temperature: float = 0.7):
+def get_llm(model: str = "richardyoung/qwen3-14b-abliterated:Q4_K_M", temperature: float = 0.7):
     """
     Returns an instance of ChatOllama.
     

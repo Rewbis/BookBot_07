@@ -17,15 +17,25 @@ def show_phase1():
         idea = st.text_area("What's the core concept of your book?", value=project.book_idea, help="Provide a few sentences or a paragraph describing your story idea.")
         if st.button("Generate Initial Plan", help="Invokes agents to brainstorm a full narrative plan and key world elements based on your idea.") and idea:
             project.book_idea = idea
-            with st.spinner("Agents are brainstorming..."):
+            with st.status("Agents are brainstorming...", expanded=True) as status:
+                st.write("📝 Plotter is drafting the narrative plan and world elements...")
                 graph = create_phase1_graph()
                 initial_state = {
                     "project": project,
                     "critic_feedback": "",
                     "iteration_count": 0
                 }
-                final_state = graph.invoke(initial_state)
-                st.session_state.project = final_state["project"]
+                
+                for event in graph.stream(initial_state):
+                    if "plotter" in event:
+                        st.write("⚖️ Critic is reviewing the plan for weaknesses...")
+                        project = event["plotter"]["project"]
+                    elif "critic" in event:
+                        # Iteration count check happens in graph, we just report progress
+                        st.write("🔄 Refining plan based on critique...")
+                
+                status.update(label="Brainstorming Complete!", state="complete", expanded=False)
+                st.session_state.project = project
                 save_project(st.session_state.project)
                 st.rerun()
 
