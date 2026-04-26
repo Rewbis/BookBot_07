@@ -16,7 +16,7 @@ def show_phase2():
         st.info("No outlines generated yet. Let the agents create them based on your plan.")
         if st.button("🚀 Generate Chapter Outlines", help="Asks the agents to create detailed outlines for every chapter based on your book plan and characters."):
             with st.status("Agents are outlining the chapters...", expanded=True) as status:
-                st.write("✒️ Scene Writer is drafting detailed chapter outlines...")
+                st.write("✒️ Scene Writer is drafting detailed chapter outlines...1/4")
                 graph = create_phase2_graph()
                 initial_state = {
                     "project": project,
@@ -26,12 +26,12 @@ def show_phase2():
                 
                 for event in graph.stream(initial_state):
                     if "writer" in event:
-                        st.write("🔍 Continuity Checker is verifying narrative flow...")
+                        st.write("🔍 Continuity Checker is verifying narrative flow...2/4")
                         project = event["writer"]["project"]
                     elif "checker" in event:
-                        st.write("🔄 Refining outlines based on continuity check...")
+                        st.write("🔄 Refining outlines based on continuity check...3/4")
                 
-                status.update(label="Outlining Complete!", state="complete", expanded=False)
+                status.update(label="Outlining Complete! 4/4", state="complete", expanded=False)
                 st.session_state.project = project
                 save_project(st.session_state.project)
                 st.rerun()

@@ -60,3 +60,27 @@ def clean_prose_response(content: str) -> str:
     content = content.replace('```', '')
     
     return content.strip()
+
+def parse_range_string(range_str: str, max_val: int) -> List[int]:
+    """
+    Parses a string like '1-5, 8, 10-12' into a list of integers.
+    """
+    result = set()
+    parts = [p.strip() for p in range_str.split(',') if p.strip()]
+    for part in parts:
+        if '-' in part:
+            try:
+                start, end = map(int, part.split('-'))
+                for i in range(start, end + 1):
+                    if 1 <= i <= max_val:
+                        result.add(i)
+            except ValueError:
+                continue
+        else:
+            try:
+                val = int(part)
+                if 1 <= val <= max_val:
+                    result.add(val)
+            except ValueError:
+                continue
+    return sorted(list(result))
