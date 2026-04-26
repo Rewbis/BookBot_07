@@ -14,9 +14,9 @@ A modular, agentic book-writing assistant powered by LangChain, LangGraph, Strea
    py -m venv venv
    .\venv\Scripts\python -m pip install -r requirements.txt
    ```
-2. Ensure Ollama is running and you have the `richardyoung/qwen3-14b-abliterated:Q5_K_M` model pulled:
+2. Ensure Ollama is running and you have the `richardyoung/qwen3-14b-abliterated:Q4_K_M` model pulled:
    ```bash
-   ollama pull richardyoung/qwen3-14b-abliterated:Q5_K_M
+   ollama pull richardyoung/qwen3-14b-abliterated:Q4_K_M
    ```
 3. Run the app:
    ```bash
