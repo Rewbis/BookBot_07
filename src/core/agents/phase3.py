@@ -48,7 +48,7 @@ class Phase3VoiceAgent:
     def __init__(self):
         self.llm = get_llm()
 
-    def apply_voice(self, draft: str, project: ProjectState) -> str:
+    def apply_voice(self, draft: str, project: ProjectState, side_notes: str) -> str:
         style = project.style_profile
         system_prompt = (
             f"You are a Voice and Tone Expert. Refine the draft to ensure characters speak and act consistently with their traits and the overall tone of the book.\n\n"
@@ -60,7 +60,7 @@ class Phase3VoiceAgent:
         )
         # Filter characters to only those mentioned in side_notes to reduce context bloat
         mentioned_chars = []
-        notes_lower = chapter.side_notes.lower() if chapter.side_notes else ""
+        notes_lower = side_notes.lower() if side_notes else ""
         for c in project.characters:
             if c.name.lower() in notes_lower:
                 mentioned_chars.append(c)

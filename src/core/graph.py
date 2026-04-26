@@ -2,6 +2,7 @@
 LangGraph orchestration for BookBot_07.
 """
 
+import json
 from typing import TypedDict, Annotated, List, Union
 from langgraph.graph import StateGraph, END
 from src.core.state import ProjectState, Character, Location, Event, Chapter
@@ -91,6 +92,9 @@ def scene_writer_node(state: GraphState) -> GraphState:
         for i, r in enumerate(results):
             if "number" not in r:
                 r["number"] = i + 1
+            # Defensive check for side_notes if it comes as a dict
+            if "side_notes" in r and isinstance(r["side_notes"], (dict, list)):
+                r["side_notes"] = json.dumps(r["side_notes"], indent=2)
             cleaned_chapters.append(Chapter(**r))
         project.chapters = cleaned_chapters
     
@@ -155,7 +159,7 @@ def voice_node(state: GraphState) -> GraphState:
     agent = Phase3VoiceAgent()
     project = state["project"]
     chapter = project.chapters[project.current_chapter_index]
-    draft = agent.apply_voice(chapter.draft, project)
+    draft = agent.apply_voice(chapter.draft, project, chapter.side_notes)
     chapter.draft = clean_prose_response(draft)
     return {**state, "project": project}
 
