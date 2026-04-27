@@ -21,12 +21,14 @@ class TokenUsageCallback(BaseCallbackHandler):
                         st.session_state.telemetry["prompt_tokens"] += usage.get("input_tokens", 0)
                         st.session_state.telemetry["completion_tokens"] += usage.get("output_tokens", 0)
                         st.session_state.telemetry["total_tokens"] += usage.get("total_tokens", 0)
-        except Exception:
-            pass # Silent fail to avoid crashing the writing process
+        except Exception as e:
+            print(f"[TokenUsageCallback Error] {e}")
+
+_llm_instance = None
 
 def get_llm(model: str = "richardyoung/qwen3-14b-abliterated:Q4_K_M", temperature: float = 0.7):
     """
-    Returns an instance of ChatOllama.
+    Returns a singleton instance of ChatOllama.
     
     Args:
         model (str): The name of the Ollama model to use.
@@ -35,13 +37,16 @@ def get_llm(model: str = "richardyoung/qwen3-14b-abliterated:Q4_K_M", temperatur
     Returns:
         ChatOllama: The initialized LLM instance.
     """
-    return ChatOllama(
-        model=model,
-        temperature=temperature,
-        num_ctx=16384,  # context window for book writing
-        repeat_penalty=1.1,
-        callbacks=[TokenUsageCallback()]
-    )
+    global _llm_instance
+    if _llm_instance is None:
+        _llm_instance = ChatOllama(
+            model=model,
+            temperature=temperature,
+            num_ctx=16384,  # context window for book writing
+            repeat_penalty=1.1,
+            callbacks=[TokenUsageCallback()]
+        )
+    return _llm_instance
 
 def invoke_llm(prompt: str, system_prompt: Optional[str] = None) -> str:
     """

@@ -1,9 +1,10 @@
 """
 Main Streamlit Application for BookBot_07.
 """
+import os
+os.environ["TRANSFORMERS_VERBOSITY"] = "error"
 
 import streamlit as st
-import os
 from src.core.state import ProjectState
 from src.ui.persistence import save_project, load_project
 from src.ui.views.phase1_planning import show_phase1

@@ -22,9 +22,13 @@ def show_phase1():
             project.book_idea = idea
             with st.status("Agents are brainstorming...", expanded=True) as status:
                 st.write("📝 Plotter is drafting the narrative plan and world elements... 1/4")
+                
+                # Use a deep copy to avoid side effects on the session state until finalized
+                project_copy = project.model_copy(deep=True)
+                
                 graph = create_phase1_graph()
                 initial_state = {
-                    "project": project,
+                    "project": project_copy,
                     "critic_feedback": "",
                     "iteration_count": 0
                 }
@@ -44,7 +48,7 @@ def show_phase1():
                 
                 status.update(label="Brainstorming Complete! 4/4", state="complete", expanded=False)
                 save_project(st.session_state.project)
-                st.rerun()
+            st.rerun()
 
     if project.book_plan:
         st.divider()

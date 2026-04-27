@@ -23,7 +23,8 @@ class Phase2SceneWriter:
             "You are an expert Outliner. Your goal is to break down a book plan into detailed chapter outlines.\n"
             "You must strictly adhere to the names, roles, and descriptions provided in the WORLD BIBLE. "
             "Do not change character names, location names, or key event details.\n\n"
-            "For each chapter, provide a title, a detailed outline, and side notes about characters/locations/events involved.\n\n"
+            "For each chapter, provide a title, a detailed outline, and side notes. "
+            "Side notes MUST explicitly list characters involved (e.g., 'Characters: Alice, Bob').\n\n"
             "Return your response in strict JSON format as a list of objects with keys: "
             "[number, title, outline, side_notes, rough_wordcount]."
         )
@@ -67,6 +68,7 @@ class Phase2SceneWriter:
             "based on a set of FIXED previous chapters and the overall book plan.\n"
             "You must strictly adhere to the WORLD BIBLE and maintain continuity from the fixed chapters.\n\n"
             "Return your response in strict JSON format as a list of objects for the REMAINING chapters only. "
+            "Side notes MUST explicitly list characters involved (e.g., 'Characters: Alice, Bob').\n"
             "Each object must have keys: [number, title, outline, side_notes, rough_wordcount]."
         )
         
@@ -88,7 +90,8 @@ class Phase2SceneWriter:
             f"FIXED CHAPTERS (DO NOT CHANGE THESE):\n{fixed_context}\n"
         )
         
-        remaining_count = state.target_chapters - (fixed_chapter_index + 1)
+        actual_chapters = len(state.chapters)
+        remaining_count = actual_chapters - (fixed_chapter_index + 1)
         if remaining_count <= 0:
             return []
             

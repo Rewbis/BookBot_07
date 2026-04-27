@@ -3,6 +3,7 @@ Common utilities for BookBot_07.
 """
 
 import json
+import json_repair
 import re
 from typing import Dict, Any, List, Union
 
@@ -35,9 +36,9 @@ def clean_json_response(content: str) -> Union[Dict[str, Any], List[Any]]:
             json_str = content.strip()
 
     try:
-        return json.loads(json_str)
-    except json.JSONDecodeError as e:
-        print(f"Failed to parse JSON: {e}")
+        return json_repair.loads(json_str)
+    except Exception as e:
+        print(f"Failed to parse JSON with json_repair: {e}")
         print(f"Raw string attempted: {json_str[:200]}...")
         return {} if json_str.startswith('{') else []
 
@@ -60,6 +61,17 @@ def clean_prose_response(content: str) -> str:
     content = content.replace('```', '')
     
     return content.strip()
+
+def clean_element(elem: Any, default_key: str = "name") -> Dict[str, Any]:
+    """
+    Defensively cleans an element that could be a dict or a string.
+    Useful for parsing LLM outputs for characters, locations, etc.
+    """
+    if isinstance(elem, dict):
+        return {k: v for k, v in elem.items() if v is not None}
+    if isinstance(elem, str):
+        return {default_key: elem}
+    return {}
 
 def parse_range_string(range_str: str, max_val: int) -> List[int]:
     """

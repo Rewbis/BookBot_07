@@ -10,34 +10,37 @@ from src.core.utils import parse_range_string
 
 def run_drafting_pipeline(project: ProjectState, chapter_idx: int):
     """Executes the 4-agent drafting pipeline for a specific chapter."""
+    # Use a deep copy to avoid side effects on the original session state object
+    project_copy = project.model_copy(deep=True)
+    project_copy.current_chapter_index = chapter_idx
+
     graph = create_phase3_graph()
     initial_state = {
-        "project": project,
+        "project": project_copy,
         "critic_feedback": "",
         "iteration_count": 0
     }
-    chapter = project.chapters[chapter_idx]
-    project.current_chapter_index = chapter_idx
+    chapter = project_copy.chapters[chapter_idx]
     
     with st.status(f"Writing Chapter {chapter.number}...", expanded=True) as status:
         st.write("🎬 Action Agent is setting the scene...1/4")
         for event in graph.stream(initial_state):
             if "action" in event:
                 st.write("👃 Sensory Agent is adding details...2/4")
-                project = event["action"]["project"]
+                project_copy = event["action"]["project"]
             elif "sensory" in event:
                 st.write("🗣️ Voice Agent is styling prose...3/4")
-                project = event["sensory"]["project"]
+                project_copy = event["sensory"]["project"]
             elif "voice" in event:
                 st.write("✍️ Editor Agent is polishing...4/4")
-                project = event["voice"]["project"]
+                project_copy = event["voice"]["project"]
             elif "editor" in event:
-                project = event["editor"]["project"]
+                project_copy = event["editor"]["project"]
         
         status.update(label="Drafting Complete!", state="complete", expanded=False)
     
-    save_project(project)
-    return project
+    save_project(project_copy)
+    return project_copy
 
 def show_phase3():
     st.title("Phase 3: Scene Drafting")
@@ -59,6 +62,12 @@ def show_phase3():
                 for i, ch_num in enumerate(chapter_nums):
                     ch_idx = ch_num - 1
                     status_text.write(f"📝 **Bulk Progress:** Drafting Chapter {ch_num} ({i+1}/{len(chapter_nums)})...")
+                    
+                    # Clear widget state to ensure new text displays
+                    key = f"draft_{ch_idx}"
+                    if key in st.session_state:
+                        del st.session_state[key]
+                        
                     project = run_drafting_pipeline(project, ch_idx)
                     progress_bar.progress((i + 1) / len(chapter_nums))
                 
@@ -107,6 +116,12 @@ def show_phase3():
                     sub_col1, sub_col2 = st.columns([1, 1])
                     if sub_col1.button("✅ Yes, Regenerate", type="primary"):
                         st.session_state.confirm_regen = False
+                        
+                        # Clear widget state to ensure new text displays
+                        key = f"draft_{selected_chapter_idx}"
+                        if key in st.session_state:
+                            del st.session_state[key]
+                            
                         project = run_drafting_pipeline(project, selected_chapter_idx)
                         st.session_state.project = project
                         st.rerun()

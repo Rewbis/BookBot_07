@@ -9,7 +9,7 @@ from src.core.state import ProjectState, Character, Location, Event, Chapter
 from src.core.agents.phase1 import Phase1Plotter, Phase1Critic
 from src.core.agents.phase2 import Phase2SceneWriter, Phase2ContinuityChecker
 from src.core.agents.phase3 import Phase3ActionAgent, Phase3SensoryAgent, Phase3VoiceAgent, Phase3EditorAgent
-from src.core.utils import clean_prose_response
+from src.core.utils import clean_prose_response, clean_element
 
 class GraphState(TypedDict):
     """The state of the graph."""
@@ -29,14 +29,6 @@ def plotter_node(state: GraphState) -> GraphState:
     project = state["project"]
     project.book_plan = result.get("plan", project.book_plan)
     
-    # Update data elements with defensive parsing
-    def clean_element(elem, default_key="name"):
-        if isinstance(elem, dict):
-            return {k: v for k, v in elem.items() if v is not None}
-        if isinstance(elem, str):
-            return {default_key: elem}
-        return {}
-
     project.characters = [Character(**clean_element(c, "name")) for c in result.get("characters", [])]
     project.locations = [Location(**clean_element(l, "name")) for l in result.get("locations", [])]
     project.events = [Event(**clean_element(e, "title")) for e in result.get("events", [])]
@@ -159,7 +151,7 @@ def voice_node(state: GraphState) -> GraphState:
     agent = Phase3VoiceAgent()
     project = state["project"]
     chapter = project.chapters[project.current_chapter_index]
-    draft = agent.apply_voice(chapter.draft, project, chapter.side_notes)
+    draft = agent.apply_voice(chapter.draft, project, chapter.side_notes, chapter.outline)
     chapter.draft = clean_prose_response(draft)
     return {**state, "project": project}
 

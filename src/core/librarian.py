@@ -1,6 +1,5 @@
 import chromadb
 import os
-os.environ["TRANSFORMERS_VERBOSITY"] = "error"
 import re
 from typing import List, Tuple, Dict, Any
 
@@ -10,7 +9,7 @@ class Librarian:
         self.collection = self.client.get_or_create_collection(name=collection_name)
 
     def sanitize_title(self, title: str) -> str:
-        """Matches FilingBot's ID generation logic."""
+        """Matches FilingBot's ID generation logic. FilingBot is another app, in a seperate install"""
         return "".join(c for c in str(title) if c.isalnum())
 
     def calculate_metrics(self, chunks: List[str]) -> float:

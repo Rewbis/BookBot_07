@@ -18,9 +18,13 @@ def show_phase2():
         if st.button("🚀 Generate Chapter Outlines", help="Asks the agents to create detailed outlines for every chapter based on your book plan and characters."):
             with st.status("Agents are outlining the chapters...", expanded=True) as status:
                 st.write("✒️ Scene Writer is drafting detailed chapter outlines...1/4")
+                
+                # Use a deep copy to avoid side effects on the session state until finalized
+                project_copy = project.model_copy(deep=True)
+                
                 graph = create_phase2_graph()
                 initial_state = {
-                    "project": project,
+                    "project": project_copy,
                     "critic_feedback": "",
                     "iteration_count": 0
                 }
@@ -39,7 +43,7 @@ def show_phase2():
                 
                 status.update(label="Outlining Complete! 4/4", state="complete", expanded=False)
                 save_project(st.session_state.project)
-                st.rerun()
+            st.rerun()
 
     if project.chapters and project.chapters[0].outline:
         st.subheader("Edit Chapter Outlines")
@@ -74,9 +78,11 @@ def show_phase2():
                         chapter.rough_wordcount = new_wc
                         chapter.outline = new_outline
                         chapter.side_notes = new_notes
-                        save_project(project)
+                        save_project(st.session_state.project)
                         
+                        needs_rerun = False
                         with st.status(f"Re-generating chapters from {chapter.number + 1} onwards...") as status:
+                            print(f"[regen] fixed_idx={i}, target_chapters={project.target_chapters}, actual={len(project.chapters)}")
                             writer = Phase2SceneWriter()
                             new_outlines = writer.regenerate_subsequent_chapters(project, i)
                             if new_outlines:
@@ -88,12 +94,23 @@ def show_phase2():
                                     updated_chapters.append(Chapter(**r))
                                 
                                 project.chapters = fixed_chapters + updated_chapters
+                                
+                                # Clear widget states for all subsequent chapters
+                                for j in range(i + 1, len(project.chapters)):
+                                    for key_prefix in ["ch_title_", "ch_wc_", "ch_outline_", "ch_notes_"]:
+                                        k = f"{key_prefix}{j}"
+                                        if k in st.session_state:
+                                            del st.session_state[k]
+                                
                                 st.session_state.project = project
-                                save_project(project)
+                                save_project(st.session_state.project)
                                 status.update(label="Re-generation complete!", state="complete")
-                                st.rerun()
+                                needs_rerun = True
                             else:
                                 status.update(label="No subsequent chapters to generate.", state="error")
+                        
+                        if needs_rerun:
+                            st.rerun()
 
         st.divider()
         if st.button("✅ Confirm Outlines & Move to Drafting", help="Finalizes the outlines and unlocks the scene drafting phase."):
