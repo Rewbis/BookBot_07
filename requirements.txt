@@ -7,3 +7,8 @@ python-dotenv==1.2.1
 langsmith==0.6.6
 pywin32>=306; sys_platform == 'win32'
 winshell>=0.6; sys_platform == 'win32'
+chromadb==1.5.8
+sentence-transformers==5.4.1
+ollama==0.6.1
+torch==2.13.0.dev20260427+cpu
+torchvision==0.27.0.dev20260427+cpu

@@ -7,6 +7,8 @@ from src.core.graph import create_phase1_graph, GraphState
 from src.core.state import ProjectState, Character, Location, Event, Chapter
 from src.ui.persistence import save_project
 from src.core.agents.phase1 import Phase1Plotter
+import os
+from src.core.librarian import Librarian, build_style_prompt
 
 def show_phase1():
     st.title("Phase 1: Planning & Brainstorming")
@@ -63,6 +65,42 @@ def show_phase1():
             new_tone = st.text_input("Tone (e.g., dark and lyrical)", value=project.style_profile.tone, help="Describes the atmosphere and mood of the prose.")
             new_pov = st.text_input("POV (e.g., third person limited)", value=project.style_profile.pov, help="Point of view the book will be written in.")
             new_sample = st.text_area("Sample Prose (for style matching)", value=project.style_profile.sample_prose, height=150, help="Paste ~200 words of writing you admire to help the agents mimic the style.")
+            
+            st.divider()
+            st.write("#### RAG Style Guide (Optional)")
+            use_rag = st.checkbox("Enable RAG Style Guide", value=project.style_profile.use_rag)
+            
+            vdb_root = "style_VDBs"
+            available_vdbs = []
+            if os.path.exists(vdb_root):
+                available_vdbs = [d for d in os.listdir(vdb_root) if os.path.isdir(os.path.join(vdb_root, d))]
+            
+            if use_rag:
+                if not available_vdbs:
+                    st.warning("No style databases found in `style_VDBs/`. Please add one to use this feature.")
+                else:
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        ref_vdb = st.selectbox("Reference Database", options=available_vdbs, index=available_vdbs.index(project.style_profile.reference_vdb) if project.style_profile.reference_vdb in available_vdbs else 0)
+                    with col2:
+                        n_win = st.number_input("Context Window (chunks)", value=project.style_profile.n_window, min_value=0, max_value=5)
+                    
+                    # Test Retrieval
+                    test_query = st.text_input("Test Retrieval Query", placeholder="e.g. A weary soldier enters a tavern")
+                    if st.button("🔍 Test Style Retrieval") and test_query:
+                        vdb_path = os.path.join(vdb_root, ref_vdb)
+                        lib = Librarian(vdb_path)
+                        chunks, meta = lib.get_windowed_context(test_query, n_window=n_win)
+                        if chunks:
+                            st.success(f"Retrieved {len(chunks)} chunks from '{meta.get('title')}'")
+                            with st.expander("View Generated Style Prompt"):
+                                prompt = build_style_prompt("Write a short scene based on the context.", chunks, meta)
+                                st.code(prompt, language="markdown")
+                        else:
+                            st.error("No matches found in the database.")
+            else:
+                ref_vdb = project.style_profile.reference_vdb
+                n_win = project.style_profile.n_window
 
         # Data Elements Tabs (World Bible)
         st.subheader("Step 4: World Bible")
@@ -117,6 +155,9 @@ def show_phase1():
                 project.style_profile.tone = new_tone
                 project.style_profile.pov = new_pov
                 project.style_profile.sample_prose = new_sample
+                project.style_profile.use_rag = use_rag
+                project.style_profile.reference_vdb = ref_vdb
+                project.style_profile.n_window = n_win
                 # Note: Character/Location/Event names are already updated via their keys in the loop
                 save_project(project)
                 st.success("Project Saved!")
@@ -130,6 +171,9 @@ def show_phase1():
                 project.style_profile.tone = new_tone
                 project.style_profile.pov = new_pov
                 project.style_profile.sample_prose = new_sample
+                project.style_profile.use_rag = use_rag
+                project.style_profile.reference_vdb = ref_vdb
+                project.style_profile.n_window = n_win
                 
                 # Initialize chapters if they don't exist
                 if not project.chapters or len(project.chapters) != project.target_chapters:

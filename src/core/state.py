@@ -11,6 +11,10 @@ class StyleProfile(BaseModel):
     tone: str = ""           # e.g. "dark and lyrical"
     pov: str = ""            # e.g. "third person limited"
     sample_prose: str = ""   # author pastes 200 words they like
+    use_rag: bool = False
+    reference_vdb: str = ""  # folder name in style_VDBs
+    reference_author: str = ""
+    n_window: int = 1
 
 class Character(BaseModel):
     """Represents a character in the book."""

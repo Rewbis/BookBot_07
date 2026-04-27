@@ -5,6 +5,9 @@ Responsible for drafting full scenes.
 
 from src.core.llm import get_llm
 from src.core.state import ProjectState, Chapter
+import os
+os.environ["TRANSFORMERS_VERBOSITY"] = "error"
+from src.core.librarian import Librarian, build_style_prompt
 
 class Phase3ActionAgent:
     """Focuses on the core action and movement within a scene."""
@@ -50,6 +53,30 @@ class Phase3VoiceAgent:
 
     def apply_voice(self, draft: str, project: ProjectState, side_notes: str) -> str:
         style = project.style_profile
+        
+        if style.use_rag and style.reference_vdb:
+            vdb_path = os.path.join("style_VDBs", style.reference_vdb)
+            if os.path.exists(vdb_path):
+                lib = Librarian(vdb_path)
+                # Use side_notes as query to find relevant style context
+                query = side_notes if side_notes else draft[:500]
+                chunks, meta = lib.get_windowed_context(query, n_window=style.n_window)
+                
+                if chunks:
+                    system_prompt = build_style_prompt(
+                        "Refine the draft to ensure characters speak and act consistently with their traits and the overall tone of the book.",
+                        chunks,
+                        meta
+                    )
+                    # Add character info to the prompt as well
+                    mentioned_chars = self._get_mentioned_characters(project, side_notes)
+                    char_info = "\n".join([f"{c.name}: {c.traits}" for c in mentioned_chars])
+                    system_prompt += f"\n\nCharacters in this scene:\n{char_info}"
+                    system_prompt += "\n\nReturn ONLY the updated story prose. Do not include any preamble, conversational filler, or markdown code block markers."
+                    
+                    return self.llm.invoke([("system", system_prompt), ("human", draft)]).content
+
+        # Fallback to standard prompt if RAG is disabled or failed
         system_prompt = (
             f"You are a Voice and Tone Expert. Refine the draft to ensure characters speak and act consistently with their traits and the overall tone of the book.\n\n"
             f"For each significant character action, ensure the prose conveys WHY they are doing it — "
@@ -58,20 +85,20 @@ class Phase3VoiceAgent:
             f"PROSE SAMPLE (for inspiration): {style.sample_prose}\n\n"
             f"Return ONLY the updated story prose. Do not include any preamble, conversational filler, or markdown code block markers."
         )
-        # Filter characters to only those mentioned in side_notes to reduce context bloat
+        mentioned_chars = self._get_mentioned_characters(project, side_notes)
+        char_info = "\n".join([f"{c.name}: {c.traits}" for c in mentioned_chars])
+        user_prompt = f"Characters in this scene:\n{char_info}\n\nDraft:\n{draft}"
+        return self.llm.invoke([("system", system_prompt), ("human", user_prompt)]).content
+
+    def _get_mentioned_characters(self, project: ProjectState, side_notes: str):
         mentioned_chars = []
         notes_lower = side_notes.lower() if side_notes else ""
         for c in project.characters:
             if c.name.lower() in notes_lower:
                 mentioned_chars.append(c)
-        
-        # Fallback if no characters found in notes
         if not mentioned_chars:
-            mentioned_chars = project.characters[:3] # At least give something
-            
-        char_info = "\n".join([f"{c.name}: {c.traits}" for c in mentioned_chars])
-        user_prompt = f"Characters in this scene:\n{char_info}\n\nDraft:\n{draft}"
-        return self.llm.invoke([("system", system_prompt), ("human", user_prompt)]).content
+            mentioned_chars = project.characters[:3]
+        return mentioned_chars
 
 class Phase3EditorAgent:
     """Performs final polish, grammar checks, and pacing adjustments."""

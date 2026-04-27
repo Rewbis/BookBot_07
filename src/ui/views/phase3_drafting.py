@@ -20,21 +20,21 @@ def run_drafting_pipeline(project: ProjectState, chapter_idx: int):
     project.current_chapter_index = chapter_idx
     
     with st.status(f"Writing Chapter {chapter.number}...", expanded=True) as status:
-        st.write("🎬 Action Agent is setting the scene...1/5")
+        st.write("🎬 Action Agent is setting the scene...1/4")
         for event in graph.stream(initial_state):
             if "action" in event:
-                st.write("👃 Sensory Agent is adding details...2/5")
+                st.write("👃 Sensory Agent is adding details...2/4")
                 project = event["action"]["project"]
             elif "sensory" in event:
-                st.write("🗣️ Voice Agent is styling prose...3/5")
+                st.write("🗣️ Voice Agent is styling prose...3/4")
                 project = event["sensory"]["project"]
             elif "voice" in event:
-                st.write("✍️ Editor Agent is polishing...4/5")
+                st.write("✍️ Editor Agent is polishing...4/4")
                 project = event["voice"]["project"]
             elif "editor" in event:
                 project = event["editor"]["project"]
         
-        status.update(label="Drafting Complete! 5/5", state="complete", expanded=False)
+        status.update(label="Drafting Complete!", state="complete", expanded=False)
     
     save_project(project)
     return project
