@@ -6,3 +6,4 @@ data/*.json
 data/project_state.json
 .streamlit/
 .DS_Store
+style_VDBs/
