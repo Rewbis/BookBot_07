@@ -71,6 +71,7 @@ def show_phase3():
                     project = run_drafting_pipeline(project, ch_idx)
                     progress_bar.progress((i + 1) / len(chapter_nums))
                 
+                st.session_state.project = project
                 st.success(f"Successfully drafted {len(chapter_nums)} chapters!")
                 st.rerun()
     

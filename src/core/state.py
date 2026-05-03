@@ -15,6 +15,7 @@ class StyleProfile(BaseModel):
     reference_vdb: str = ""  # folder name in style_VDBs
     reference_author: str = ""
     n_window: int = 1
+    image_style: str = ""    # base visual style for Phase 4 image generation
 
 class Character(BaseModel):
     """Represents a character in the book."""
@@ -47,6 +48,7 @@ class Chapter(BaseModel):
     draft: Optional[str] = None
     summary: str = "" # Short context for continuity
     is_completed: bool = False
+    image_prompt: Optional[str] = None # Phase 4 image generation prompt
 
 class ProjectState(BaseModel):
     """The global state of the BookBot project."""
@@ -69,8 +71,13 @@ class ProjectState(BaseModel):
     # Phase 3: Drafting
     current_chapter_index: int = 0
     
+    # Phase 4: Publishing & Marketing
+    cover_prompt: str = ""
+    blurb: str = ""
+    marketing_copy: str = ""
+    
     # Metadata
-    current_phase: int = 1  # 1: Planning, 2: Outlining, 3: Drafting
+    current_phase: int = 1  # 1: Planning, 2: Outlining, 3: Drafting, 4: Publishing
     last_updated: str = ""
     
     def get_character_names(self) -> List[str]:

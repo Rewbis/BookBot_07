@@ -7,9 +7,7 @@ os.environ["TRANSFORMERS_VERBOSITY"] = "error"
 import streamlit as st
 from src.core.state import ProjectState
 from src.ui.persistence import save_project, load_project
-from src.ui.views.phase1_planning import show_phase1
-from src.ui.views.phase2_outlining import show_phase2
-from src.ui.views.phase3_drafting import show_phase3
+# View imports deferred to improve startup time.
 
 # Page Configuration
 st.set_page_config(
@@ -57,8 +55,8 @@ def main():
     # Navigation
     phase = st.sidebar.radio(
         "Navigation",
-        ["Phase 1: Planning", "Phase 2: Outlining", "Phase 3: Drafting"],
-        index=st.session_state.project.current_phase - 1
+        ["Phase 1: Planning", "Phase 2: Outlining", "Phase 3: Drafting", "Phase 4: Marketing & Artwork", "Phase 5: Publishing"],
+        index=min(st.session_state.project.current_phase - 1, 4)
     )
     
     # Save/Load Section
@@ -114,14 +112,25 @@ def main():
 
     # Update phase in project state
     if phase == "Phase 1: Planning":
+        from src.ui.views.phase1_planning import show_phase1
         st.session_state.project.current_phase = 1
         show_phase1()
     elif phase == "Phase 2: Outlining":
+        from src.ui.views.phase2_outlining import show_phase2
         st.session_state.project.current_phase = 2
         show_phase2()
     elif phase == "Phase 3: Drafting":
+        from src.ui.views.phase3_drafting import show_phase3
         st.session_state.project.current_phase = 3
         show_phase3()
+    elif phase == "Phase 4: Marketing & Artwork":
+        from src.ui.views.phase4_publishing import show_phase4
+        st.session_state.project.current_phase = 4
+        show_phase4()
+    elif phase == "Phase 5: Publishing":
+        from src.ui.views.phase5_publishing import show_phase5
+        st.session_state.project.current_phase = 5
+        show_phase5()
 
 if __name__ == "__main__":
     main()

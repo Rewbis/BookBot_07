@@ -28,3 +28,15 @@ A modular, agentic book-writing assistant powered by LangChain, LangGraph, Strea
 - `src/core/`: Agents and LangGraph logic.
 - `src/ui/`: Streamlit interface.
 - `data/`: Project storage.
+
+## Testing
+The project uses `pytest` for unit testing the core components and utilities.
+- **Utils**: Validates defensive parsing of messy LLM outputs (e.g. JSON strings with unclosed thinking tags or markdown blocks).
+- **Librarian**: Uses ephemeral ChromaDB instances to test vector search and windowed context retrieval.
+- **Persistence**: Validates `ProjectState` data integrity during save/load roundtrips.
+- **Graph Routing**: Deterministic unit tests for conditional edge logic.
+
+To run tests:
+```bash
+.\.venv\Scripts\python -m pytest tests/unit
+```
