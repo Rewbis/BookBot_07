@@ -1,6 +1,6 @@
 # BookBot_07
 
-A modular, agentic book-writing assistant powered by LangChain, LangGraph, Streamlit, and Ollama.
+A modular, agentic book-writing assistant powered by LangChain, LangGraph, Streamlit, and Ollama. - moving to v0.08 ! Abandoning LangChain, looking to make it mobile device accessible + hosted on home pc.
 
 ## Features
 - **Phase 1: Planning** - Brainstorm ideas and create a book plan.
